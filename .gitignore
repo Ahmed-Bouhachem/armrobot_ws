@@ -1,0 +1,14 @@
+# Colcon / ROS 2 build artifacts
+build/
+install/
+log/
+
+# IDE settings
+.vscode/
+.idea/
+
+# Misc
+*.gv
+*.pdf
+compile_commands.json
+*.Zone.Identifier
