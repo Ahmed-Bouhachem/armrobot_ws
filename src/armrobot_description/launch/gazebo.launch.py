@@ -37,8 +37,11 @@ def generate_launch_description():
         Command(
             [
                 "xacro",
+                " ",
                 LaunchConfiguration("model"),
-                f"is_ignition:={is_ignition}",
+                " ",
+                "is_ignition:=",
+                is_ignition,
             ]
         ),
         value_type=str,
@@ -86,19 +89,19 @@ def generate_launch_description():
         launch_arguments=[("gz_args", "-r -v 3 empty.sdf")]
     )
 
+    spawn_entity = Node(
+        package="ros_gz_sim",
+        executable="create",
+        output="screen",
+        arguments=[
+            "-topic", "robot_description",
+            "-entity", "armrobot",
+        ],
+    )
+
     spawn_robot = TimerAction(
         period=3.0,
-        actions=[
-            Node(
-                package="ros_gz_sim",
-                executable="create",
-                output="screen",
-                arguments=[
-                    "-topic", "robot_description",
-                    "-entity", "armrobot",
-                ],
-            )
-        ],
+        actions=[spawn_entity],
     )
 
     auto_start_controllers_arg = DeclareLaunchArgument(
@@ -150,7 +153,7 @@ def generate_launch_description():
         spawn_robot,
         RegisterEventHandler(
             event_handler=OnProcessExit(
-                target_action=spawn_robot,
+                target_action=spawn_entity,
                 on_exit=[joint_state_broadcaster_spawner],
             ),
             condition=IfCondition(LaunchConfiguration("auto_start_controllers")),
