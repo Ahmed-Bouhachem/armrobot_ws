@@ -1,19 +1,20 @@
+import os
 from launch import LaunchDescription
+from moveit_configs_utils import MoveItConfigsBuilder
+from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
-from moveit_configs_utils import MoveItConfigsBuilder
-import os
 from ament_index_python.packages import get_package_share_directory
-from launch_ros.actions import Node
 
 
 def generate_launch_description():
+
+    is_sim = LaunchConfiguration("is_sim")
+    
     is_sim_arg = DeclareLaunchArgument(
         "is_sim",
         default_value="True"
     )
-
-    is_sim = LaunchConfiguration("is_sim")
 
     moveit_config = (
         MoveItConfigsBuilder("armrobot", package_name="armrobot_moveit")
@@ -28,11 +29,12 @@ def generate_launch_description():
         .robot_description_kinematics(file_path="config/kinematic.yaml")
         .joint_limits(file_path="config/joint_limits.yaml")
         .trajectory_execution(file_path="config/moveit_controllers.yaml")
+        .pilz_cartesian_limits(file_path="config/pilz_cartesian_limits.yaml")
         .to_moveit_configs()
     )
-    
+
     move_group_node = Node(
-        package="moveit_ros_move_group", 
+        package="moveit_ros_move_group",
         executable="move_group",
         output="screen",
         parameters=[moveit_config.to_dict(), 
@@ -41,12 +43,12 @@ def generate_launch_description():
         arguments=["--ros-args", "--log-level", "info"],
     )
 
+    # RViz
     rviz_config = os.path.join(
         get_package_share_directory("armrobot_moveit"),
             "config",
             "moveit.rviz",
     )
-
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
@@ -61,8 +63,10 @@ def generate_launch_description():
         ],
     )
 
-    return LaunchDescription([
-        is_sim_arg,
-        move_group_node,
-        rviz_node
-    ])
+    return LaunchDescription(
+        [
+            is_sim_arg,
+            move_group_node, 
+            rviz_node
+        ]
+    )
