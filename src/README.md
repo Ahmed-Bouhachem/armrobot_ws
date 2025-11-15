@@ -72,3 +72,13 @@ ros2 launch armrobot_moveit moveit.launch.py
 ```
 
 MoveIt will start the `move_group` node and RViz so you can plan trajectories interactively. Be sure the controllers are active before sending plans from MoveIt.
+
+## 5. Joystick Teleoperation
+
+Connect a joystick recognized by the `joy` driver (default `/dev/input/js0`) and run:
+
+```bash
+ros2 launch armrobot_teleop joystick_teleop.launch.py joy_dev:=/dev/input/js0
+```
+
+Move the assigned axes to jog joints 1–3 and use the configured buttons to open/close the gripper. You can tweak scales, limits, and button mapping via ROS parameters (see `armrobot_teleop/armrobot_teleop/joystick_teleop.py`).
