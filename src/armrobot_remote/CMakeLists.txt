@@ -44,6 +44,7 @@ install(TARGETS
 
 install(PROGRAMS
   ${PROJECT_NAME}/task_server.py
+  ${PROJECT_NAME}/web_interface.py
   DESTINATION lib/${PROJECT_NAME}
 )
 if(BUILD_TESTING)

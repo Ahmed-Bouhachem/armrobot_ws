@@ -82,3 +82,13 @@ ros2 launch armrobot_teleop joystick_teleop.launch.py joy_dev:=/dev/input/js0
 ```
 
 Move the assigned axes to jog joints 1–3 and use the configured buttons to open/close the gripper. You can tweak scales, limits, and button mapping via ROS parameters (see `armrobot_teleop/armrobot_teleop/joystick_teleop.py`).
+
+## 6. Web GUI Control
+
+For a simple button-based interface, start the Flask dashboard (after sourcing the workspace):
+
+```bash
+ros2 run armrobot_remote web_interface.py
+```
+
+Then open <http://localhost:5000> in a browser. Use the `+/-` buttons next to each joint to jog by the configured delta (default 0.1 rad) and the Open/Close buttons to command the gripper. Ensure Gazebo and the controllers are running before launching the GUI.

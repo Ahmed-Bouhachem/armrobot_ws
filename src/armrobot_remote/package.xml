@@ -14,6 +14,12 @@
   <depend>rclcpp_components</depend>
   <depend>armrobot_msgs</depend>
   <depend>moveit_ros_planning_interface</depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>rclpy_action</exec_depend>
+  <exec_depend>control_msgs</exec_depend>
+  <exec_depend>trajectory_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>python3-flask</exec_depend>
   
   <exec_depend>ros2launch</exec_depend>
   <exec_depend>python3-flask</exec_depend>
