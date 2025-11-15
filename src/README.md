@@ -62,3 +62,13 @@ ros2 action send_goal /gripper_controller/follow_joint_trajectory \
 ```
 
 Each command should print `Goal successfully reached!` and the robot should move in Gazebo. Adjust joint targets or timing as needed for your tests.
+
+## 4. Launch MoveIt (optional)
+
+Once Gazebo and the controllers are running, you can bring up the MoveIt pipeline with:
+
+```bash
+ros2 launch armrobot_moveit moveit.launch.py
+```
+
+MoveIt will start the `move_group` node and RViz so you can plan trajectories interactively. Be sure the controllers are active before sending plans from MoveIt.
