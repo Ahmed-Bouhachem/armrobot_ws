@@ -95,7 +95,7 @@ Then open <http://localhost:5000> in a browser. Use the `+/-` buttons next to ea
 
 ## 7. Teach & Replay Poses
 
-Launch the MoveIt-backed teaching node:
+Launch the teaching node (uses FollowJointTrajectory to command the arm):
 
 ```bash
 ros2 launch armrobot_teach teach_node.launch.py
@@ -108,4 +108,4 @@ ros2 service call /teach_pose armrobot_msgs/srv/TeachPose \"{name: 'home'}\"
 ros2 service call /go_to_pose armrobot_msgs/srv/TeachPose \"{name: 'home'}\"
 ```
 
-Each pose stores the joints listed in the `joint_names` parameter (defaults to joints 1–3). The node uses MoveIt to plan and execute motion to the stored configuration.
+Each pose stores the joints listed in the `joint_names` parameter (defaults to joints 1–3). When you request `go_to_pose`, the node sends a short trajectory to the arm controller that moves directly to the saved joint values.

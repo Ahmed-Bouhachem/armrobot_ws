@@ -12,9 +12,9 @@
   <depend>rclpy</depend>
   <depend>sensor_msgs</depend>
   <depend>armrobot_msgs</depend>
-  <depend>moveit_ros_planning_interface</depend>
-  <depend>moveit_ros_move_group</depend>
-  <exec_depend>moveit_commander</exec_depend>
+  <depend>control_msgs</depend>
+  <depend>trajectory_msgs</depend>
+  <depend>rclpy_action</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
