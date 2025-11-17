@@ -13,6 +13,8 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 
 class ArmJoystickTeleop(Node):
+    """Listens to /joy and /joint_states and sends FollowJointTrajectory goals."""
+
     def __init__(self) -> None:
         super().__init__("armrobot_joystick_teleop")
 
@@ -64,6 +66,7 @@ class ArmJoystickTeleop(Node):
         self._arm_client = ActionClient(self, FollowJointTrajectory, arm_action_name)
         self._gripper_client = ActionClient(self, FollowJointTrajectory, gripper_action_name)
 
+        # Subscribe to joint states (for current positions) and joystick inputs.
         self._joint_state_sub = self.create_subscription(JointState, "joint_states", self._joint_state_cb, 10)
         self._joy_sub = self.create_subscription(Joy, "joy", self._joy_cb, 10)
 
@@ -91,7 +94,7 @@ class ArmJoystickTeleop(Node):
             self._last_buttons = list(msg.buttons)
             return
 
-        axis_values = msg.axes
+        axis_values = msg.axes  # analog values [-1, 1]
         updated_positions: List[float] = []
         deltas_applied = False
 
@@ -118,6 +121,7 @@ class ArmJoystickTeleop(Node):
                 target = min(upper, target)
             updated_positions.append(target)
 
+        # Only send a new trajectory if something changed enough and the server is ready.
         if deltas_applied and self._arm_client.server_is_ready():
             current_values = [self._joint_positions.get(name, 0.0) for name in self._joint_names]
             max_delta = max(abs(a - b) for a, b in zip(updated_positions, current_values))

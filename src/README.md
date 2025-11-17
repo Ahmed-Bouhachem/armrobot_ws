@@ -92,3 +92,20 @@ ros2 run armrobot_remote web_interface.py
 ```
 
 Then open <http://localhost:5000> in a browser. Use the `+/-` buttons next to each joint to jog by the configured delta (default 0.1 rad) and the Open/Close buttons to command the gripper. Ensure Gazebo and the controllers are running before launching the GUI.
+
+## 7. Teach & Replay Poses
+
+Launch the MoveIt-backed teaching node:
+
+```bash
+ros2 launch armrobot_teach teach_node.launch.py
+```
+
+Teach or replay poses via the provided services:
+
+```bash
+ros2 service call /teach_pose armrobot_msgs/srv/TeachPose \"{name: 'home'}\"
+ros2 service call /go_to_pose armrobot_msgs/srv/TeachPose \"{name: 'home'}\"
+```
+
+Each pose stores the joints listed in the `joint_names` parameter (defaults to joints 1–3). The node uses MoveIt to plan and execute motion to the stored configuration.
