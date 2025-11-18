@@ -204,19 +204,22 @@ class WebArmController(Node):
         if not self.teach_client.wait_for_service(timeout_sec=0.5):
             self.get_logger().warn("Teach service unavailable")
             return
+        if cleaned not in self.taught_names:
+            self.taught_names.append(cleaned)
+            self.taught_names.sort()
         request = TeachPose.Request()
         request.name = cleaned
         future = self.teach_client.call_async(request)
 
         def _after_teach(fut):
             result = fut.result()
-            if result and result.success:
-                if cleaned not in self.taught_names:
-                    self.taught_names.append(cleaned)
-                self.get_logger().info("Stored pose '%s'", cleaned)
-            else:
+            if not (result and result.success):
                 message = result.message if result else "unknown error"
                 self.get_logger().warn("Teach '%s' failed: %s", cleaned, message)
+                if cleaned in self.taught_names:
+                    self.taught_names.remove(cleaned)
+            else:
+                self.get_logger().info("Stored pose '%s'", cleaned)
 
         future.add_done_callback(_after_teach)
 
