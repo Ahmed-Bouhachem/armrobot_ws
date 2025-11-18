@@ -17,6 +17,8 @@ from control_msgs.action import FollowJointTrajectory
 from sensor_msgs.msg import JointState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
+from armrobot_msgs.srv import TeachPose
+
 
 HTML_TEMPLATE = """
 <!doctype html>
@@ -68,6 +70,28 @@ HTML_TEMPLATE = """
       <input type="hidden" name="position" value="{{ gripper_open }}" />
       <button type="submit">Open</button>
     </form>
+
+    <h2>Teach & Replay</h2>
+    <form method="post" action="{{ url_for('teach_pose') }}">
+      <input type="text" name="pose_name" placeholder="Pose name" required />
+      <button type="submit">Teach</button>
+    </form>
+    {% if taught_names %}
+    <p>Saved poses:</p>
+    <ul>
+      {% for pose in taught_names %}
+      <li>
+        {{ pose }}
+        <form method="post" action="{{ url_for('goto_pose') }}" style="display:inline;">
+          <input type="hidden" name="pose_name" value="{{ pose }}" />
+          <button type="submit">Go</button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p>No poses taught yet.</p>
+    {% endif %}
   </body>
 </html>
 """
@@ -103,6 +127,12 @@ class WebArmController(Node):
 
         self.arm_client = ActionClient(self, FollowJointTrajectory, arm_action)
         self.gripper_client = ActionClient(self, FollowJointTrajectory, gripper_action)
+        self.teach_client = self.create_client(TeachPose, "/teach_pose")
+        self.goto_client = self.create_client(TeachPose, "/go_to_pose")
+        self.taught_names: List[str] = []
+        self.teach_client = self.create_client(TeachPose, "/teach_pose")
+        self.goto_client = self.create_client(TeachPose, "/go_to_pose")
+        self.taught_names: List[str] = []
 
         self.joint_positions: Dict[str, float] = {}
         self.joint_lock = threading.Lock()
@@ -166,6 +196,51 @@ class WebArmController(Node):
         goal.trajectory = traj
         self.gripper_client.send_goal_async(goal)
 
+    def teach_pose(self, name: str) -> None:
+        cleaned = name.strip()
+        if not cleaned:
+            self.get_logger().warn("Pose name must not be empty")
+            return
+        if not self.teach_client.wait_for_service(timeout_sec=0.5):
+            self.get_logger().warn("Teach service unavailable")
+            return
+        request = TeachPose.Request()
+        request.name = cleaned
+        future = self.teach_client.call_async(request)
+
+        def _after_teach(fut):
+            result = fut.result()
+            if result and result.success:
+                if cleaned not in self.taught_names:
+                    self.taught_names.append(cleaned)
+                self.get_logger().info("Stored pose '%s'", cleaned)
+            else:
+                message = result.message if result else "unknown error"
+                self.get_logger().warn("Teach '%s' failed: %s", cleaned, message)
+
+        future.add_done_callback(_after_teach)
+
+    def go_to_pose(self, name: str) -> None:
+        cleaned = name.strip()
+        if not cleaned:
+            return
+        if not self.goto_client.wait_for_service(timeout_sec=0.5):
+            self.get_logger().warn("Goto service unavailable")
+            return
+        request = TeachPose.Request()
+        request.name = cleaned
+        future = self.goto_client.call_async(request)
+
+        def _after_goto(fut):
+            result = fut.result()
+            if result and result.success:
+                self.get_logger().info("Commanding pose '%s'", cleaned)
+            else:
+                message = result.message if result else "unknown error"
+                self.get_logger().warn("Goto '%s' failed: %s", cleaned, message)
+
+        future.add_done_callback(_after_goto)
+
 
 app = Flask(__name__)
 controller: WebArmController | None = None
@@ -182,6 +257,7 @@ def index():
         delta=controller.delta,
         gripper_open=controller.gripper_open,
         gripper_close=controller.gripper_close,
+        taught_names=controller.taught_names,
     )
 
 
@@ -199,6 +275,22 @@ def set_gripper():
     assert controller is not None
     position = float(request.form.get("position", "0"))
     controller.set_gripper(position)
+    return redirect(url_for("index"))
+
+
+@app.route("/teach_pose", methods=["POST"])
+def teach_pose():
+    assert controller is not None
+    pose_name = request.form.get("pose_name", "")
+    controller.teach_pose(pose_name)
+    return redirect(url_for("index"))
+
+
+@app.route("/goto_pose", methods=["POST"])
+def goto_pose():
+    assert controller is not None
+    pose_name = request.form.get("pose_name", "")
+    controller.go_to_pose(pose_name)
     return redirect(url_for("index"))
 
 

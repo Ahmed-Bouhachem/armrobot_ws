@@ -91,7 +91,7 @@ For a simple button-based interface, start the Flask dashboard (after sourcing t
 ros2 run armrobot_remote web_interface.py
 ```
 
-Then open <http://localhost:5000> in a browser. Use the `+/-` buttons next to each joint to jog by the configured delta (default 0.1 rad) and the Open/Close buttons to command the gripper. Ensure Gazebo and the controllers are running before launching the GUI.
+Then open <http://localhost:5000> in a browser. Use the `+/-` buttons next to each joint to jog by the configured delta (default 0.1 rad) and the Open/Close buttons to command the gripper. The Teach form lets you name the current pose; saved entries appear with “Go” buttons that call the teach-node services (see below). Ensure Gazebo and the controllers are running before launching the GUI.
 
 ## 7. Teach & Replay Poses
 
